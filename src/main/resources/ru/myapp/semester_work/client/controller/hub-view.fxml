@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox alignment="CENTER" spacing="20"
+      xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="ru.myapp.semester_work.client.controller.HubController">
+
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+
+    <Label text="Codenames - Игровые комнаты"
+           style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+
+    <VBox spacing="10" prefWidth="500">
+        <Label text="Доступные комнаты:"
+               style="-fx-font-weight: bold;"/>
+
+        <ListView fx:id="roomsListView"
+                  prefHeight="300"
+                  prefWidth="500"
+                  style="-fx-border-color: #ccc; -fx-border-radius: 5;">
+        </ListView>
+
+        <HBox alignment="center">
+            <Label text="Новая комната:" prefWidth="50"/>
+            <TextField fx:id="roomNameField" promptText="Введите название комнаты" prefWidth="200"/>
+            <Button text="Создать" onAction="#onCreateRoomButtonClick"/>
+        </HBox>
+    </VBox>
+</VBox>
