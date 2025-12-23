@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,11 +18,13 @@ public class MessageHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageHandler.class);
     private static final int BUFFER_SIZE = 1024;
+    private static final String MESSAGE_DELIMITER = "\n";
 
     private final NetworkService networkService;
     private final ConnectionManager connectionManager;
     private final SessionManager sessionManager;
     private final RoomManager roomManager;
+    private StringBuilder messageBuffer = new StringBuilder();
 
     public MessageHandler(NetworkService networkService, ConnectionManager connectionManager,
                           SessionManager sessionManager, RoomManager roomManager) {
@@ -32,32 +35,57 @@ public class MessageHandler {
     }
 
     public void handleClientMessage(SocketChannel clientChannel) {
-        String rawMessage = readMessage(clientChannel);
-        if (rawMessage == null || rawMessage.isEmpty()) {
-            return;
+        List<String> messages = readMessages(clientChannel);
+
+        for (String rawMessage : messages) {
+            if (rawMessage == null || rawMessage.isEmpty()) {
+                continue;
+            }
+
+            LOGGER.info("Получено сообщение от {}: {}", getClientInfo(clientChannel), rawMessage);
+
+            try {
+                Message message = MessageParser.parse(rawMessage);
+                processMessage(clientChannel, message);
+            } catch (IllegalArgumentException e) {
+                LOGGER.error("Ошибка парсинга сообщения от {}: '{}'", getClientInfo(clientChannel), rawMessage, e);
+            }
         }
-
-        LOGGER.info("Получено сообщение от {}: {}", getClientInfo(clientChannel), rawMessage);
-
-        Message message = MessageParser.parse(rawMessage);
-        processMessage(clientChannel, message);
     }
 
-    private String readMessage(SocketChannel clientChannel) {
+    private List<String> readMessages(SocketChannel clientChannel) {
         ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
+        List<String> messages = new ArrayList<>();
 
         try {
             int read = clientChannel.read(buffer);
-            buffer.flip();
-            return switch (read) {
-                case -1 -> throw new IOException("Клиент отключился");
-                case 0 -> "";
-                default -> StandardCharsets.UTF_8.decode(buffer).toString().trim();
-            };
+            if (read == -1) {
+                throw new IOException("Клиент отключился");
+            }
+
+            if (read > 0) {
+                buffer.flip();
+                String received = StandardCharsets.UTF_8.decode(buffer).toString();
+                messageBuffer.append(received);
+
+                String bufferContent = messageBuffer.toString();
+                String[] messageArray = bufferContent.split(MESSAGE_DELIMITER, -1);
+
+                for (int i = 0; i < messageArray.length - 1; i++) {
+                    String message = messageArray[i].trim();
+                    if (!message.isEmpty()) {
+                        messages.add(message);
+                    }
+                }
+
+                messageBuffer = new StringBuilder(messageArray[messageArray.length - 1]);
+            }
         } catch (IOException e) {
             handleClientDisconnection(clientChannel, e);
-            return null;
+            return messages;
         }
+
+        return messages;
     }
 
     private void processMessage(SocketChannel clientChannel, Message message) {

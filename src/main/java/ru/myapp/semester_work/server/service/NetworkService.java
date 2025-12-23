@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 public class NetworkService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NetworkService.class);
+    private static final String MESSAGE_DELIMITER = "\n";
 
     public void sendMessage(SocketChannel clientChannel, String clientInfo, String message) {
         if (clientChannel == null || !clientChannel.isOpen()) {
@@ -19,7 +20,8 @@ public class NetworkService {
         }
 
         try {
-            byte[] bytes = message.getBytes(StandardCharsets.UTF_8);
+            String messageWithDelimiter = message + MESSAGE_DELIMITER;
+            byte[] bytes = messageWithDelimiter.getBytes(StandardCharsets.UTF_8);
             ByteBuffer buffer = ByteBuffer.wrap(bytes);
             clientChannel.write(buffer);
 

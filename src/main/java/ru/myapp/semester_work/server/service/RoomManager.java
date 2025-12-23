@@ -17,8 +17,6 @@ public class RoomManager {
     public RoomManager() {
         this.rooms = new ConcurrentHashMap<>();
         this.clientToRoomMap = new ConcurrentHashMap<>();
-        rooms.put("Комната 42-братух", new ArrayList<>());
-        rooms.put("Team Spirit vs Team Falcons", new ArrayList<>());
     }
 
     public List<String> getRoomNames() {
