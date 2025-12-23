@@ -373,8 +373,8 @@ public class GameSessionController {
         clientService.sendCardClick(wordData);
     }
 
-    public void handleCardClicked(WordData wordData, PlayerType playerType) {
-        StackPane card = cardContainers[wordData.getPositionX()][wordData.getPositionY()];
+    public void handleCardClicked(TeamType wordTeamType, PlayerType playerType, int positionX, int positionY) {
+        StackPane card = cardContainers[positionY][positionX];
 
         ScaleTransition clickScale = new ScaleTransition(Duration.millis(150), card);
         clickScale.setToX(0.95);
@@ -383,7 +383,7 @@ public class GameSessionController {
         clickScale.setCycleCount(2);
         clickScale.play();
 
-        applyCardColor(card, wordData.getTeamType(), playerType);
+        applyCardColor(card, wordTeamType, playerType);
     }
 
     private void applyCardColor(StackPane card, TeamType teamType, PlayerType playerType) {

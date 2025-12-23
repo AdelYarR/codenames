@@ -77,6 +77,9 @@ public class MessageHandler {
             case NEXT_TURN:
                 handleNextTurn(clientChannel, message.getPayload());
                 break;
+            case CARD_CLICKED:
+                handleCardClicked(clientChannel, message.getPayload());
+                break;
         }
     }
 
@@ -134,5 +137,26 @@ public class MessageHandler {
         TeamType teamType = TeamType.valueOf(payload.get(1));
         PlayerType playerType = PlayerType.valueOf(payload.get(2));
         callback.setPlayerPermission(currentTurnName, teamType, playerType);
+    }
+
+    private void handleCardClicked(SocketChannel clientChannel, List<String> payload) {
+        int positionX = Integer.parseInt(payload.get(0));
+        int positionY = Integer.parseInt(payload.get(1));
+        int redCount = Integer.parseInt(payload.get(2));
+        int blueCount = Integer.parseInt(payload.get(3));
+        TeamType clientTeamType = TeamType.valueOf(payload.get(4));
+        PlayerType playerType = PlayerType.valueOf(payload.get(5));
+        TeamType wordTeamType = TeamType.valueOf(payload.get(6));
+        boolean isTurnEnded = Boolean.parseBoolean(payload.get(7));
+        TeamType clickedByTeamType = TeamType.valueOf(payload.get(8));
+        PlayerType clickedByPlayerType = PlayerType.valueOf(payload.get(9));
+
+        callback.setCounters(redCount, blueCount);
+        callback.handleCardClicked(wordTeamType, playerType, positionX, positionY);
+        if (isTurnEnded) {
+            String rawMessage = String.format("END_TURN|%s|%s",
+                    clickedByTeamType, clickedByPlayerType);
+            networkService.sendMessage(clientChannel, rawMessage);
+        }
     }
 }

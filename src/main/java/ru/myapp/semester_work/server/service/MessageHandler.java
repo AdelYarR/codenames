@@ -296,34 +296,49 @@ public class MessageHandler {
         }
         SessionState sessionState = optionalSessionState.get();
 
-        int index = positionX * 5 + positionY;
+        int index = positionY * 5 + positionX;
         WordData wordData = sessionState.getWordDataByIndex(index);
         wordData.setGuessed(true);
 
         TeamType teamType = sessionState.getTeamTypeByClientChannel(clientChannel);
 
-        String rawMessage;
+        boolean isTurnEnded = false;
         if (wordData.getTeamType() == teamType) {
-            rawMessage = "CARD_CLICKED_SUCCESS";
             if (teamType == TeamType.RED) {
                 sessionState.setRedCount(sessionState.getRedCount() - 1);
             } else {
                 sessionState.setBlueCount(sessionState.getBlueCount() - 1);
             }
         } else {
-            if (teamType == TeamType.NONE) {
-                rawMessage = "CARD_CLICKED_NEUTRAL";
-            } else {
-                rawMessage = "CARD_CLICKED_UNSUCCESS";
+            if (teamType != TeamType.NONE) {
                 if (teamType == TeamType.RED) {
                     sessionState.setBlueCount(sessionState.getBlueCount() - 1);
                 } else {
                     sessionState.setRedCount(sessionState.getRedCount() - 1);
                 }
             }
+            isTurnEnded = true;
         }
 
-        rawMessage += String.format("|%s|%s|%s|%s");
-        broadcastToRoom(roomManager.getClientChannelsByRoomName(roomName), rawMessage);
+        broadcastCardClickedToRoom(roomManager.getClientChannelsByRoomName(roomName), sessionState, wordData, isTurnEnded,
+                clientChannel);
+    }
+
+    private void broadcastCardClickedToRoom(List<SocketChannel> clientChannels, SessionState sessionState, WordData wordData, boolean isTurnEnded,
+                                            SocketChannel clickedByClientChannel) {
+        for (SocketChannel clientChannel : clientChannels) {
+            String rawMessage = String.format("CARD_CLICKED|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s",
+                    wordData.getPositionX(),
+                    wordData.getPositionY(),
+                    sessionState.getRedCount(),
+                    sessionState.getBlueCount(),
+                    sessionState.getTeamTypeByClientChannel(clientChannel),
+                    sessionState.getPlayerTypeByClientChannel(clientChannel),
+                    wordData.getTeamType(),
+                    isTurnEnded,
+                    sessionState.getTeamTypeByClientChannel(clickedByClientChannel),
+                    sessionState.getPlayerTypeByClientChannel(clickedByClientChannel));
+            networkService.sendMessage(clientChannel, getClientInfo(clientChannel), rawMessage);
+        }
     }
 }

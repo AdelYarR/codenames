@@ -150,7 +150,7 @@ public class NavigationController {
         Platform.runLater(() ->
         {
             if (gameSessionController == null) {
-                AlertHelper.showErrorAlert("Не удалось очистить тип.", "Окно игровой сессии не найдено.");
+                AlertHelper.showErrorAlert("Не удалось создать карточек со словами.", "Окно игровой сессии не найдено.");
                 return;
             }
 
@@ -162,7 +162,7 @@ public class NavigationController {
         Platform.runLater(() ->
         {
             if (gameSessionController == null) {
-                AlertHelper.showErrorAlert("Не удалось очистить тип.", "Окно игровой сессии не найдено.");
+                AlertHelper.showErrorAlert("Не удалось поменять возможности игрока.", "Окно игровой сессии не найдено.");
                 return;
             }
 
@@ -185,7 +185,7 @@ public class NavigationController {
         Platform.runLater(() ->
         {
             if (gameSessionController == null) {
-                AlertHelper.showErrorAlert("Не удалось очистить тип.", "Окно игровой сессии не найдено.");
+                AlertHelper.showErrorAlert("Не удалось добавить сообщение.", "Окно игровой сессии не найдено.");
                 return;
             }
 
@@ -194,6 +194,18 @@ public class NavigationController {
             } else {
                 gameSessionController.addMessageToBlueListView(message);
             }
+        });
+    }
+
+    public void handleCardClicked(TeamType wordTeamType, PlayerType playerType, int positionX, int positionY) {
+        Platform.runLater(() ->
+        {
+            if (gameSessionController == null) {
+                AlertHelper.showErrorAlert("Не удалось обработать нажатие на карточку со словом.", "Окно игровой сессии не найдено.");
+                return;
+            }
+
+            gameSessionController.handleCardClicked(wordTeamType, playerType, positionX, positionY);
         });
     }
 }
